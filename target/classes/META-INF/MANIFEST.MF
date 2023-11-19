@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Build-Jdk-Spec: 17
+Implementation-Title: Spring Boot Data Rest App (from https://github.com
+ /making/spring-boot-blank)
+Implementation-Version: 0.0.1-SNAPSHOT
+Main-Class: com.trancha.demo.SpringBootDataRestApplication
+Created-By: Maven Integration for Eclipse
+
