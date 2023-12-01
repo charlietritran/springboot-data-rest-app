@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -33,7 +32,7 @@ import com.trancha.demo.model.PersonFormWrapper;
 import com.trancha.demo.repository.PersonRepository;
 import com.trancha.demo.service.FilesStorageService;
 
-@CrossOrigin(origins = "http://localhost:8081")
+//@CrossOrigin(origins = "http://localhost:8081")
 @RestController
 @RequestMapping("/api")
 public class PersonController {
@@ -50,7 +49,7 @@ public class PersonController {
 	 * @param birthdate
 	 * @return
 	 */
-	@CrossOrigin(origins = "http://localhost:8449")
+	// @CrossOrigin(origins = "http://localhost:8449")
 	@GetMapping("/people")
 	public ResponseEntity<List<Person>> getAllPersons(@RequestParam(required = false) String birthdate) {
 		try {
@@ -74,7 +73,7 @@ public class PersonController {
 	 * @param id
 	 * @return
 	 */
-	@CrossOrigin(origins = "http://localhost:8449")
+	// @CrossOrigin(origins = "http://localhost:8449")
 	@GetMapping("/person/{id}")
 	public ResponseEntity<Person> getPersonById(@PathVariable("id") long id) {
 		Optional<Person> personData = personRepository.findById(id);
@@ -91,7 +90,7 @@ public class PersonController {
 	 * @param person
 	 * @return
 	 */
-	@CrossOrigin(origins = "http://localhost:8449")
+	// @CrossOrigin(origins = "http://localhost:8449")
 	@PostMapping("/person")
 	public ResponseEntity<Person> createPerson(@RequestBody Person person) {
 		try {
@@ -109,7 +108,7 @@ public class PersonController {
 	 * @param model
 	 * @return
 	 */
-	@CrossOrigin(origins = "http://localhost:8449")
+	// @CrossOrigin(origins = "http://localhost:8449")
 	@PostMapping("/person/multi/model")
 	public ResponseEntity<Person> createPersonMultiModel(@ModelAttribute PersonFormWrapper model) {
 		try {
@@ -195,7 +194,7 @@ public class PersonController {
 	 * @param person
 	 * @return
 	 */
-	@CrossOrigin(origins = "http://localhost:8449")
+	// @CrossOrigin(origins = "http://localhost:8449")
 	@PutMapping("/person/{id}")
 	public ResponseEntity<Person> updatePerson(@PathVariable("id") long id, @RequestBody Person person) {
 		Optional<Person> personData = personRepository.findById(id);
@@ -218,7 +217,7 @@ public class PersonController {
 	 * @param id
 	 * @return
 	 */
-	@CrossOrigin(origins = "http://localhost:8449")
+	// @CrossOrigin(origins = "http://localhost:8449")
 	@DeleteMapping("/person/{id}")
 	public ResponseEntity<HttpStatus> deletePerson(@PathVariable("id") long id) {
 		try {
@@ -241,7 +240,7 @@ public class PersonController {
 	 * 
 	 * @return
 	 */
-	@CrossOrigin(origins = "http://localhost:8449")
+	// @CrossOrigin(origins = "http://localhost:8449")
 	@DeleteMapping("/people")
 	public ResponseEntity<HttpStatus> deleteAllPersons() {
 		try {
@@ -258,7 +257,7 @@ public class PersonController {
 	 * @param firstname
 	 * @return
 	 */
-	@CrossOrigin(origins = "http://localhost:8449")
+	// @CrossOrigin(origins = "http://localhost:8449")
 	@GetMapping("/person/firstname")
 	public ResponseEntity<List<Person>> findByFirstname(@RequestParam(required = false) String firstname) {
 		try {
