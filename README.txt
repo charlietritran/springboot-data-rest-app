@@ -99,4 +99,8 @@ C) APACHE PROXY URL REVERSE:
     
 </VirtualHost>
 
-
+D) QA:
+- Multipart and JSON: https://blogs.perficient.com/2020/07/27/requestbody-and-multipart-on-spring-boot/
+- https://springjava.com/spring-boot/json-object-with-file-upload-spring-rest-api
+- https://www.devglan.com/react-js/file-upload-react-spring-rest
+- https://www.appsdeveloperblog.com/read-json-request-body-in-spring-web-mvc/

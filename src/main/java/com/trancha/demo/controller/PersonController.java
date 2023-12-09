@@ -11,9 +11,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -23,19 +27,23 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trancha.demo.model.Person;
 import com.trancha.demo.model.PersonFormWrapper;
 import com.trancha.demo.repository.PersonRepository;
 import com.trancha.demo.service.FilesStorageService;
 
-//@CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin("http://localhost:8449")
 @RestController
 @RequestMapping("/api")
 public class PersonController {
+
+	private static final Log log = LogFactory.getLog(PersonController.class);
 
 	@Autowired
 	PersonRepository personRepository;
@@ -49,7 +57,7 @@ public class PersonController {
 	 * @param birthdate
 	 * @return
 	 */
-	// @CrossOrigin(origins = "http://localhost:8449")
+	@CrossOrigin(origins = "http://localhost:8449")
 	@GetMapping("/people")
 	public ResponseEntity<List<Person>> getAllPersons(@RequestParam(required = false) String birthdate) {
 		try {
@@ -73,7 +81,7 @@ public class PersonController {
 	 * @param id
 	 * @return
 	 */
-	// @CrossOrigin(origins = "http://localhost:8449")
+	@CrossOrigin(origins = "http://localhost:8449")
 	@GetMapping("/person/{id}")
 	public ResponseEntity<Person> getPersonById(@PathVariable("id") long id) {
 		Optional<Person> personData = personRepository.findById(id);
@@ -108,8 +116,8 @@ public class PersonController {
 	 * @param model
 	 * @return
 	 */
-	// @CrossOrigin(origins = "http://localhost:8449")
-	@PostMapping("/person/multi/model")
+	@CrossOrigin(origins = "http://localhost:8449")
+	@PostMapping("/person/multipart")
 	public ResponseEntity<Person> createPersonMultiModel(@ModelAttribute PersonFormWrapper model) {
 		try {
 
@@ -145,17 +153,19 @@ public class PersonController {
 		Files.createDirectories(root);
 
 		// Save all files to dir
-		try {
-			for (MultipartFile file : files) {
-				Path path = root.resolve(file.getOriginalFilename());
-				Files.copy(file.getInputStream(), path);
-			}
-		} catch (Exception e) {
-			if (e instanceof FileAlreadyExistsException) {
-				throw new RuntimeException("A file of that name already exists.");
-			}
+		if (files != null) {
+			try {
+				for (MultipartFile file : files) {
+					Path path = root.resolve(file.getOriginalFilename());
+					Files.copy(file.getInputStream(), path);
+				}
+			} catch (Exception e) {
+				if (e instanceof FileAlreadyExistsException) {
+					throw new RuntimeException("A file of that name already exists.");
+				}
 
-			throw new RuntimeException(e.getMessage());
+				throw new RuntimeException(e.getMessage());
+			}
 		}
 
 		// build fileInfos for return
@@ -194,7 +204,7 @@ public class PersonController {
 	 * @param person
 	 * @return
 	 */
-	// @CrossOrigin(origins = "http://localhost:8449")
+	@CrossOrigin(origins = "http://localhost:8449")
 	@PutMapping("/person/{id}")
 	public ResponseEntity<Person> updatePerson(@PathVariable("id") long id, @RequestBody Person person) {
 		Optional<Person> personData = personRepository.findById(id);
@@ -212,12 +222,73 @@ public class PersonController {
 	}
 
 	/**
+	 * UPDATE PERSON WITH MULTI FORM DATA
+	 * 
+	 * @param model
+	 * @return
+	 */
+	@CrossOrigin(origins = "http://localhost:8449")
+	@PostMapping("/person/multipart/{id}")
+	public ResponseEntity<Person> updatePersonMultiModel(@PathVariable("id") long id,
+			@ModelAttribute PersonFormWrapper model) {
+
+		try {
+
+			Optional<Person> personData = personRepository.findById(id);
+			if (personData.isPresent()) {
+
+				String delMsg = "";
+				// String[] deletedFiles = model.getDeletedFiles().split(",");
+				for (String filename : model.getDeletedFiles()) {
+
+					// delete docs if any
+					Path root = Paths.get("uploads/" + id);
+					try {
+
+						boolean existed = storageService.delete(filename.toString(), root);
+
+						if (existed) {
+							delMsg += ", Delete the file successfully: " + filename;
+						} else {
+							delMsg += ", File not exist: " + filename;
+						}
+
+						log.info(delMsg);
+
+					} catch (Exception e) {
+						delMsg = "Could not delete the file: " + filename + ". Error: " + e.getMessage();
+						log.info(delMsg);
+
+					}
+				}
+
+				List<String> fileInfos = processUploadedFile(model.getDocuments(), id);
+
+				// update now.
+				Person _person = personData.get();
+				_person.setFirstname(model.getFirstname());
+				_person.setLastname(model.getLastname());
+				_person.setBirthdate(model.getBirthdate());
+				_person.setGender(model.getGender());
+				_person.setDocuments(StringUtils.join(fileInfos, ","));
+				return new ResponseEntity<>(personRepository.save(_person), HttpStatus.OK);
+
+			} else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+
+		} catch (Exception e) {
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
 	 * DELETE PERSON
 	 * 
 	 * @param id
 	 * @return
 	 */
-	// @CrossOrigin(origins = "http://localhost:8449")
+	@CrossOrigin(origins = "http://localhost:8449")
 	@DeleteMapping("/person/{id}")
 	public ResponseEntity<HttpStatus> deletePerson(@PathVariable("id") long id) {
 		try {
@@ -240,7 +311,7 @@ public class PersonController {
 	 * 
 	 * @return
 	 */
-	// @CrossOrigin(origins = "http://localhost:8449")
+	@CrossOrigin(origins = "http://localhost:8449")
 	@DeleteMapping("/people")
 	public ResponseEntity<HttpStatus> deleteAllPersons() {
 		try {
@@ -257,7 +328,7 @@ public class PersonController {
 	 * @param firstname
 	 * @return
 	 */
-	// @CrossOrigin(origins = "http://localhost:8449")
+	@CrossOrigin(origins = "http://localhost:8449")
 	@GetMapping("/person/firstname")
 	public ResponseEntity<List<Person>> findByFirstname(@RequestParam(required = false) String firstname) {
 		try {
@@ -269,5 +340,22 @@ public class PersonController {
 		} catch (Exception e) {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@PostMapping(value = "/person/requestpart/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.MULTIPART_FORM_DATA_VALUE })
+	public ResponseEntity<Person> updatePersonRequestPart(@PathVariable("id") long id,
+			@RequestPart("person") String person, @RequestPart("file") List<MultipartFile> file) {
+
+		Person personJson = new Person();
+
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			personJson = objectMapper.readValue(person, Person.class);
+		} catch (IOException err) {
+			System.out.printf("Error", err.toString());
+		}
+
+		return new ResponseEntity<>(personRepository.save(personJson), HttpStatus.OK);
 	}
 }

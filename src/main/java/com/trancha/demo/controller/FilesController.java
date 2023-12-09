@@ -26,14 +26,14 @@ import com.trancha.demo.model.FileInfo;
 import com.trancha.demo.service.FilesStorageService;
 
 @Controller
-//@CrossOrigin("http://localhost:8849")
+@CrossOrigin("http://localhost:8449")
 @RequestMapping("/api")
 public class FilesController {
 
 	@Autowired
 	FilesStorageService storageService;
 
-	// @CrossOrigin("http://localhost:8449")
+	@CrossOrigin("http://localhost:8449")
 	@PostMapping("/upload")
 	public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file") MultipartFile file) {
 		String message = "";
@@ -48,7 +48,7 @@ public class FilesController {
 		}
 	}
 
-	// @CrossOrigin("http://localhost:8449")
+	@CrossOrigin("http://localhost:8449")
 	@GetMapping("/docs/{id}")
 	public ResponseEntity<List<FileInfo>> getDocs(@PathVariable("id") long id) {
 		Path root = Paths.get("uploads/" + id);
@@ -64,7 +64,7 @@ public class FilesController {
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	}
 
-	// @CrossOrigin("http://localhost:8449")
+	@CrossOrigin("http://localhost:8449")
 	@GetMapping("/docs/{filename:.+}/{id:.+}")
 	public ResponseEntity<Resource> getDoc(@PathVariable String filename, long id) {
 		Path root = Paths.get("uploads/" + id);
@@ -88,7 +88,7 @@ public class FilesController {
 		return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
 	}
 
-	// @CrossOrigin("http://localhost:8449")
+	@CrossOrigin("http://localhost:8449")
 	@GetMapping("/files/{filename:.+}")
 	public ResponseEntity<Resource> getFile(@PathVariable String filename) {
 		Resource file = storageService.load(filename, null);
@@ -97,7 +97,7 @@ public class FilesController {
 				.body(file);
 	}
 
-	// @CrossOrigin("http://localhost:8449")
+	@CrossOrigin("http://localhost:8449")
 	@DeleteMapping("/files/{filename:.+}")
 	public ResponseEntity<ResponseMessage> deleteFile(@PathVariable String filename) {
 		String message = "";
