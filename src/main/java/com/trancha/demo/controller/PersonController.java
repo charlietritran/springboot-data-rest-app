@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +64,7 @@ public class PersonController {
 		try {
 			List<Person> persons = new ArrayList<Person>();
 			if (birthdate == null)
-				personRepository.findAll().forEach(persons::add);
+				personRepository.findAll(Sort.by(Sort.Direction.DESC, "id")).forEach(persons::add);
 			else
 				personRepository.findByBirthdateContaining(birthdate).forEach(persons::add);
 			if (persons.isEmpty()) {
@@ -237,31 +238,35 @@ public class PersonController {
 			Optional<Person> personData = personRepository.findById(id);
 			if (personData.isPresent()) {
 
-				String delMsg = "";
-				// String[] deletedFiles = model.getDeletedFiles().split(",");
-				for (String filename : model.getDeletedFiles()) {
+				// DELETE FILES:
+				if (model.getDeletedFiles() != null) {
+					String delMsg = "";
 
-					// delete docs if any
-					Path root = Paths.get("uploads/" + id);
-					try {
+					for (String filename : model.getDeletedFiles()) {
 
-						boolean existed = storageService.delete(filename.toString(), root);
+						// delete docs if any
+						Path root = Paths.get("uploads/" + id);
+						try {
 
-						if (existed) {
-							delMsg += ", Delete the file successfully: " + filename;
-						} else {
-							delMsg += ", File not exist: " + filename;
+							boolean existed = storageService.delete(filename.toString(), root);
+
+							if (existed) {
+								delMsg += ", Delete the file successfully: " + filename;
+							} else {
+								delMsg += ", File not exist: " + filename;
+							}
+
+							log.info(delMsg);
+
+						} catch (Exception e) {
+							delMsg = "Could not delete the file: " + filename + ". Error: " + e.getMessage();
+							log.info(delMsg);
+
 						}
-
-						log.info(delMsg);
-
-					} catch (Exception e) {
-						delMsg = "Could not delete the file: " + filename + ". Error: " + e.getMessage();
-						log.info(delMsg);
-
 					}
 				}
 
+				// ADD FILES
 				List<String> fileInfos = processUploadedFile(model.getDocuments(), id);
 
 				// update now.
